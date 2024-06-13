@@ -6,7 +6,7 @@ import org.pregmeal.recipe.Recipe;
 @Entity
 public class StepOfMaking {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String text;

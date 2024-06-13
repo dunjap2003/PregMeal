@@ -1,29 +1,44 @@
 package org.pregmeal.meal_plan;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import org.pregmeal.meal_plan_day.MealPlanDay;
 import org.pregmeal.user.User;
-import org.pregmeal.recipe.Recipe;
 
-import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 public class MealPlan {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
     private Integer duration;
-    private Date begin_date;
 
-    private Integer status;
+    @OneToMany
+    private Set<User> users;
 
-    @ManyToOne
-    @JoinColumn(name="user_id")
-    private User user;
+    @OneToMany(mappedBy = "mealPlan", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private List<MealPlanDay> mealPlanDays;
 
-    @ManyToMany(mappedBy = "meal_plans")
-    private List<Recipe> recipes;
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(name = "user_previously_followed_meal_plans",
+            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name= "meal_plan_id", referencedColumnName = "id"))
+    @JsonBackReference
+    private List<User> previousFollowers;
+
+    public MealPlan(){
+
+    }
+
+    public MealPlan(String name, int duration) {
+        this.name = name;
+        this.duration = duration;
+    }
 
     public void setId(Long id) {
         this.id = id;
@@ -49,11 +64,19 @@ public class MealPlan {
         this.duration = duration;
     }
 
-    public Date getBegin_date() {
-        return begin_date;
+    public List<MealPlanDay> getMealPlanDays() {
+        return mealPlanDays;
     }
 
-    public void setBegin_date(Date begin_date) {
-        this.begin_date = begin_date;
+    public void setMealPlanDays(List<MealPlanDay> mealPlanDays) {
+        this.mealPlanDays = mealPlanDays;
+    }
+
+    public List<User> getPreviousFollowers() {
+        return previousFollowers;
+    }
+
+    public void setPreviousFollowers(List<User> previousFollowers) {
+        this.previousFollowers = previousFollowers;
     }
 }

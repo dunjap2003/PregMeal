@@ -1,8 +1,13 @@
 import Navbar from './Navbar'
 import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
 import fruit from '../assets/login.jpg'
 
 const Login = () => {
+    const [username, setUsername] = useState('')
+    const [password, setPassword] = useState('')
+    const [message, setMessage] = useState('')
+
     const navigate = useNavigate()
 
     const goToRegister = () => {
@@ -13,6 +18,56 @@ const Login = () => {
         navigate("/home")
     }
 
+    let handleLogin = async (e) => {
+        e.preventDefault();
+
+        if (!username) {
+            setMessage('Please enter your username.');
+            return;
+        }
+
+        else if (!password) {
+            setMessage('Please enter your password.')
+            return;
+        }
+
+        try {
+            let post = await fetch("http://localhost:8080/login", {
+                method: "POST",
+                body: JSON.stringify({
+                    username: username,
+                    password: password
+                }),
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+
+            if (post.status === 500) {
+                setMessage('Invalid username or password.');
+                return;
+            }
+
+            if (post.ok) {
+                let json = await post.json();
+                console.log(json);
+                setUsername('');
+                setPassword('');
+                setMessage('');
+                sessionStorage.setItem("id", json.id);
+                sessionStorage.setItem("username", json.username);
+                goToHomepage();
+            } else {
+                let errorMessages = await post.json();
+                console.log("Error response:", errorMessages);
+                setMessage(errorMessages);
+            }
+        } catch (err) {
+            console.log(err);
+            setMessage("An error occurred while processing your request");
+        }
+    }
+
     return (
         <div>
             <Navbar />
@@ -20,18 +75,20 @@ const Login = () => {
                 <img src={fruit} className="w-[450px]"></img>
                 <div className="flex flex-col">
                     <h1 className="mx-10 text-2xl font-bold mb-4 text-darkpink">Welcome back!</h1>
-                    <div className="mx-10 max-w-sm px-6 py-6 bg-lightpink border-0 shadow-lg sm:rounded-3xl">
+                    <div className="mx-10 max-w-sm px-6 py-6 bg-babypink border-0 shadow-lg sm:rounded-3xl">
+                        <div className="flex justify-center items-center">
+                            {message && <p className="text-l font-bold mb-8 bg-red-400 text-red-600 pl-2 pr-2">{message}</p>}
+                        </div>
                         <form id="form">
                             <div className="relative z-0 w-full mb-5">
-                                <label htmlFor="username" className="text-darkpink">Username/email</label>
+                                <label htmlFor="username" className="text-darkpink">Username</label>
                                 <input
                                     type="text"
                                     name="firstname"
                                     placeholder=""
-                                    required
+                                    onChange={(e) => setUsername(e.target.value)}
                                     className="block w-full px-4 py-2 mt-2 text-darkpink bg-white rounded-md focus:border-pink focus:outline-none focus:ring"
                                 />
-                                <span className="text-sm text-red-600 hidden" id="error">Username or email is required</span>
                             </div>
 
                             <div className="relative z-0 w-full mb-5">
@@ -40,7 +97,7 @@ const Login = () => {
                                     type="password"
                                     name=""
                                     placeholder=""
-                                    required
+                                    onChange={(e) => setPassword(e.target.value)}
                                     className="block w-full px-4 py-2 mt-2 text-darkpink bg-white rounded-md focus:border-pink focus:outline-none focus:ring"
                                 />
                                 <span className="text-sm text-red-600 hidden" id="error">Password is required</span>
@@ -52,8 +109,8 @@ const Login = () => {
                                 <button
                                     id="button"
                                     type="button"
-                                    onClick={goToHomepage}
-                                    className="w-1/3 px-6 py-3 mt-3 text-lg text-lightpink transition-all duration-150 ease-linear rounded-lg shadow outline-none bg-pink hover:bg-darkpink hover:shadow-lg focus:outline-none"
+                                    onClick={handleLogin}
+                                    className="w-1/3 px-6 py-3 mt-3 text-lg text-babypink transition-all duration-150 ease-linear rounded-lg shadow outline-none bg-pink hover:bg-darkpink hover:shadow-lg focus:outline-none"
                                 >
                                     Login
                                 </button>
@@ -61,9 +118,7 @@ const Login = () => {
                         </form>
                     </div>
                 </div>
-
             </div>
-
         </div>
     )
 }

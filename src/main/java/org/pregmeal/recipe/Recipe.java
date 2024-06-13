@@ -1,28 +1,38 @@
 package org.pregmeal.recipe;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import org.pregmeal.ingredient.Ingredient;
-import org.pregmeal.meal_plan.MealPlan;
+import org.pregmeal.meal_plan_day.MealPlanDay;
 import org.pregmeal.review.Review;
 import org.pregmeal.step_of_making.StepOfMaking;
 import org.pregmeal.user.User;
 
+import java.sql.Timestamp;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 public class Recipe {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String name;
+    private String cook_time;
+    private String prep_time;
+    private String total_time;
+    private Timestamp published;
+    private Double calories;
     private Double fat;
     private Double saturated_fat;
+    private Double cholesterol;
+    private Double sodium;
+    private Double carbohydrates;
+    private Double fiber;
+    private Double sugar;
     private Double protein;
-    private Double salt;
-    private Double sugars;
-    private Double energy;
-    private String image_url;
+    private String tags;
+    private Integer servings;
 
     @OneToMany
     private List<Ingredient> ingredients;
@@ -33,19 +43,42 @@ public class Recipe {
     @OneToMany
     private List<StepOfMaking> steps_of_making;
 
+    @OneToMany
+    private List<MealPlanDay> mealPlanDays;
+
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "user_liked_recipes",
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "recipe_id", referencedColumnName = "id"))
-    private List<User> users;
+    @JsonBackReference
+    private Set<User> users;
 
-    @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(name = "meal_plan_recipes",
-            joinColumns = @JoinColumn(name = "meal_plan_id", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "recipe_id", referencedColumnName = "id"))
-    private List<MealPlan> meal_plans;
+    public String getCook_time() {
+        return cook_time;
+    }
 
-    public Recipe() {
+    public String getPrep_time() {
+        return prep_time;
+    }
+
+    public Timestamp getPublished() {
+        return published;
+    }
+
+    public String getTags() {
+        return tags;
+    }
+
+    public Double getCholesterol() {
+        return cholesterol;
+    }
+
+    public Double getFiber() {
+        return fiber;
+    }
+
+    public Integer getServings() {
+        return servings;
     }
 
     public String getName() {
@@ -56,56 +89,12 @@ public class Recipe {
         return fat;
     }
 
-    public void setFat(Double fat) {
-        this.fat = fat;
-    }
-
     public Double getSaturated_fat() {
         return saturated_fat;
     }
 
-    public void setSaturated_fat(Double saturated_fat) {
-        this.saturated_fat = saturated_fat;
-    }
-
     public Double getProtein() {
         return protein;
-    }
-
-    public void setProtein(Double protein) {
-        this.protein = protein;
-    }
-
-    public Double getSalt() {
-        return salt;
-    }
-
-    public void setSalt(Double salt) {
-        this.salt = salt;
-    }
-
-    public Double getSugars() {
-        return sugars;
-    }
-
-    public void setSugars(Double sugars) {
-        this.sugars = sugars;
-    }
-
-    public Double getEnergy() {
-        return energy;
-    }
-
-    public void setEnergy(Double energy) {
-        this.energy = energy;
-    }
-
-    public String getImage_url() {
-        return image_url;
-    }
-
-    public void setImage_url(String image_url) {
-        this.image_url = image_url;
     }
 
     public void setName(String name) {
@@ -118,5 +107,48 @@ public class Recipe {
 
     public Long getId() {
         return id;
+    }
+
+    public Double getCalories() {
+        return calories;
+    }
+
+    public Double getSugar() {
+        return sugar;
+    }
+
+    public Double getSodium() {
+        return sodium;
+    }
+
+    public Double getCarbohydrates() {
+        return carbohydrates;
+    }
+
+    public Set<User> getUsers() {
+        return users;
+    }
+
+    @Override
+    public String toString() {
+        return "Recipe{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", cook_time='" + cook_time + '\'' +
+                ", prep_time='" + prep_time + '\'' +
+                ", total_time='" + total_time + '\'' +
+                ", published=" + published +
+                ", calories=" + calories +
+                ", fat=" + fat +
+                ", saturated_fat=" + saturated_fat +
+                ", cholesterol=" + cholesterol +
+                ", sodium=" + sodium +
+                ", carbohydrates=" + carbohydrates +
+                ", fiber=" + fiber +
+                ", sugar=" + sugar +
+                ", protein=" + protein +
+                ", tags='" + tags + '\'' +
+                ", servings=" + servings +
+                '}';
     }
 }

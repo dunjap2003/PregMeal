@@ -11,13 +11,23 @@ const Register = () => {
     const [email, setEmail] = useState('');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [password2, setPassword2] = useState('');
     const [birthdate, setBirthdate] = useState('');
     const [image, setImage] = useState(null);
     const [message, setMessage] = useState('');
     const [imageAdded, setImageAdded] = useState('');
+    const [success, setSuccess] = useState(true);
+    const [samePasswords, setSamePasswords] = useState(true);
+    const [passwordCheckResult, setPasswordCheckResult] = useState(true)
+    const [emailCheckResult, setEmailCheckResult] = useState(true)
+    const [usernameTaken, setUsernameTaken] = useState(false)
 
     const goToLogin = () => {
         navigate("/login")
+    }
+
+    const goToConfirmation = () => {
+        navigate("/confirmation")
     }
 
     const handleImageChange = async (e) => {
@@ -36,8 +46,30 @@ const Register = () => {
     let handleRegister = async (e) => {
         e.preventDefault();
 
+        const allFieldsFilled = !!(firstname && lastname && email && username && password && password2 && birthdate);
+        setSuccess(allFieldsFilled);
+        if (!allFieldsFilled) return;
+
+        const emailCheck = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(email);
+        setEmailCheckResult(emailCheck)
+        if (!emailCheck) {
+            return;
+        }
+
+        const passwordCheck = /^(?=.*[A-Z]).{8,}$/.test(password);
+        setPasswordCheckResult(passwordCheck)
+        if (!passwordCheck) {
+            return;
+        }
+
+        const same = !!(password === password2);
+        setSamePasswords(same)
+        if (!same) {
+            return;
+        }
+
         try {
-            let post = await fetch("http://localhost:8000/register", {
+            let post = await fetch("http://localhost:8080/register", {
                 method: "POST",
                 body: JSON.stringify({
                     firstname: firstname,
@@ -52,6 +84,11 @@ const Register = () => {
                 }
             });
 
+            if (post.status == 500) {
+                setUsernameTaken(true);
+                return;
+            }
+
             if (post.ok) {
                 setFirstName("");
                 setLastName("");
@@ -62,6 +99,8 @@ const Register = () => {
 
                 setMessage(["Form submitted successfully"]);
                 console.log(post.status);
+                setSuccess(true);
+                goToConfirmation();
             } else {
                 let errorMessages = await post.json();
                 console.log("Error response:", errorMessages);
@@ -79,12 +118,19 @@ const Register = () => {
 
             <div className="flex justify-center items-center">
                 <img src={fruitbowl} className="w-[500px] h-[500px]"></img>
-                <div className=" max-w-md px-6 py-6 bg-lightpink border-0 shadow-lg sm:rounded-3xl">
+                <div className="max-w-md px-6 py-6 bg-babypink border-0 shadow-lg sm:rounded-3xl">
                     <h1 className="text-2xl font-bold mb-8 text-darkpink">Register to Pregmeal!</h1>
+                    <div className="flex justify-center items-center">
+                        {!success && <p className="text-l font-bold mb-8 bg-red-400 text-red-600 pl-2 pr-2">Please fill out all required fields.</p>}
+                        {!emailCheckResult && success && <p className="text-l font-bold mb-8 bg-red-400 text-red-600 pl-2 pr-2">Invalid e-mail provided.</p>}
+                        {usernameTaken && emailCheckResult && success && <p className="text-m font-bold mb-8 bg-red-400 text-red-600 pl-2 pr-3">Username or email already exists.</p>}
+                        {!passwordCheckResult && emailCheckResult && success && <p className="text-m font-bold mb-8 bg-red-400 text-red-600 pl-2 pr-3">Passwords must contain at least 8 characters, one uppercase letter, one lowercase letter, one special character and one number.</p>}
+                        {!samePasswords && passwordCheckResult && success && <p className="text-l font-bold mb-8 bg-red-400 text-red-600 pl-2 pr-2">Passwords must match.</p>}
+                    </div>
                     <form id="form">
                         <div className="grid grid-cols-1 gap-6 mt-4 sm:grid-cols-2">
                             <div className="relative z-0 w-full mb-5">
-                                <label htmlFor="name" className="text-darkpink">First name</label>
+                                <label htmlFor="name" className="text-darkpink flex"><p className="text-red-600 font-bold">*</p>First name</label>
                                 <input
                                     type="text"
                                     name="firstname"
@@ -93,11 +139,10 @@ const Register = () => {
                                     onChange={(e) => setFirstName(e.target.value)}
                                     className="block w-full px-4 py-2 mt-2 text-darkpink bg-white rounded-md focus:border-pink focus:outline-none focus:ring"
                                 />
-                                <span className="text-sm text-red-600 hidden" id="error">First name is required</span>
                             </div>
 
                             <div className="relative z-0 w-full mb-5">
-                                <label htmlFor="name" className="text-darkpink">Last name</label>
+                                <label htmlFor="name" className="text-darkpink flex"><p className="text-red-600 font-bold">*</p>Last name</label>
                                 <input
                                     type="text"
                                     name="lastname"
@@ -106,12 +151,11 @@ const Register = () => {
                                     onChange={(e) => setLastName(e.target.value)}
                                     className="block w-full px-4 py-2 mt-2 text-darkpink bg-white rounded-md focus:border-pink focus:outline-none focus:ring"
                                 />
-                                <span className="text-sm text-red-600 hidden" id="error">Last name is required</span>
                             </div>
                         </div>
 
                         <div className="relative z-0 w-full mb-5">
-                            <label htmlFor="name" className="text-darkpink">Email</label>
+                            <label htmlFor="name" className="text-darkpink flex"><p className="text-red-600 font-bold">*</p>Email</label>
                             <input
                                 type="email"
                                 name="email"
@@ -120,50 +164,23 @@ const Register = () => {
                                 onChange={(e) => setEmail(e.target.value)}
                                 className="block w-full px-4 py-2 mt-2 text-darkpink bg-white rounded-md focus:border-pink focus:outline-none focus:ring"
                             />
-                            <span className="text-sm text-red-600 hidden" id="error">Email is required</span>
-                        </div>
-
-                        <div className="relative z-0 w-1/2 mb-5">
-                            <label htmlFor="username" className="text-darkpink">Username</label>
-                            <input
-                                type="text"
-                                name="username"
-                                placeholder=""
-                                required
-                                onChange={(e) => setUsername(e.target.value)}
-                                className="block w-full px-4 py-2 mt-2 text-darkpink bg-white rounded-md focus:border-pink focus:outline-none focus:ring"
-                            />
-                            <span className="text-sm text-red-600 hidden" id="error">Username is required</span>
                         </div>
 
                         <div className="grid grid-cols-1 gap-6 mt-4 sm:grid-cols-2">
                             <div className="relative z-0 w-full mb-5">
-                                <label htmlFor="name" className="text-darkpink">Password</label>
+                                <label htmlFor="username" className="text-darkpink flex"><p className="text-red-600 font-bold">*</p>Username</label>
                                 <input
-                                    type="password"
-                                    name="password1"
+                                    type="text"
+                                    name="username"
                                     placeholder=""
                                     required
-                                    onChange={(e) => setPassword(e.target.value)}
+                                    onChange={(e) => setUsername(e.target.value)}
                                     className="block w-full px-4 py-2 mt-2 text-darkpink bg-white rounded-md focus:border-pink focus:outline-none focus:ring"
                                 />
-                                <span className="text-sm text-red-600 hidden" id="error">Password is required</span>
-                            </div>
-
-                            <div className="relative z-0 w-full mb-5">
-                                <label htmlFor="name" className="text-darkpink">Password confirmation</label>
-                                <input
-                                    type="password"
-                                    name="password2"
-                                    placeholder=""
-                                    required
-                                    className="block w-full px-4 py-2 mt-2 text-darkpink bg-white rounded-md focus:border-pink focus:outline-none focus:ring"
-                                />
-                                <span className="text-sm text-red-600 hidden" id="error">Password confirmation is required</span>
                             </div>
 
                             <div>
-                                <label htmlFor="name" className="text-darkpink">Date of birth</label>
+                                <label htmlFor="name" className="text-darkpink flex"><p className="text-red-600 font-bold">*</p>Date of birth</label>
                                 <input
                                     type="date"
                                     name="birthdate"
@@ -172,29 +189,30 @@ const Register = () => {
                                     onChange={(e) => setBirthdate(e.target.value)}
                                     className="block w-full px-4 py-2 mt-2 text-darkpink bg-white rounded-md focus:border-pink focus:outline-none focus:ring"
                                 />
-                                <span className="text-sm text-red-600 hidden" id="error">Date of birth is required</span>
                             </div>
 
-                            <div>
-                                <label htmlFor="image" className="text-darkpink">Image</label>
-                                <div className="mt-2 flex justify-center px-6 pt-5 pb-6 border-2 border-pink border-dashed rounded-md">
-                                    <div className="space-y-1 text-center">
-                                        <svg className="mx-auto h-12 w-12 text-pink" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
-                                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                        </svg>
-                                        <div className="flex flex-col gap-y-3 text-sm text-darkpink px-4 py-2">
-                                            <label htmlFor="image-upload" className="relative cursor-pointer rounded-md font-medium text-pink hover:text-darkpink focus-within:ring-2 focus-within:ring-darkpink">
-                                                <span>Upload an image</span>
-                                                <input id="image-upload" name="image-upload" type="file" onChange={handleImageChange} className="sr-only"></input>
-                                            </label>
-                                            <img src={image}/>
-                                            {
-                                                imageAdded &&
-                                                <button onClick={removeImage} className="bg-none text-pink hover:text-darkpink">Remove</button>
-                                            }
-                                        </div>
-                                    </div>
-                                </div>
+                            <div className="relative z-0 w-full mb-5">
+                                <label htmlFor="name" className="text-darkpink flex"><p className="text-red-600 font-bold">*</p>Password</label>
+                                <input
+                                    type="password"
+                                    name="password1"
+                                    placeholder=""
+                                    required
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="block w-full px-4 py-2 mt-2 text-darkpink bg-white rounded-md focus:border-pink focus:outline-none focus:ring"
+                                />
+                            </div>
+
+                            <div className="relative z-0 w-full mb-5">
+                                <label htmlFor="name" className="text-darkpink flex"><p className="text-red-600 font-bold">*</p>Password confirmation</label>
+                                <input
+                                    type="password"
+                                    name="password2"
+                                    placeholder=""
+                                    required
+                                    onChange={(e) => setPassword2(e.target.value)}
+                                    className="block w-full px-4 py-2 mt-2 text-darkpink bg-white rounded-md focus:border-pink focus:outline-none focus:ring"
+                                />
                             </div>
                         </div>
 
@@ -205,7 +223,7 @@ const Register = () => {
                                 id="button"
                                 type="button"
                                 onClick={handleRegister}
-                                className="w-1/3 px-6 py-3 mt-3 text-lg text-lightpink transition-all duration-150 ease-linear rounded-lg shadow outline-none bg-pink hover:bg-darkpink hover:shadow-lg focus:outline-none"
+                                className="w-1/3 px-6 py-3 mt-3 text-lg text-babypink transition-all duration-150 ease-linear rounded-lg shadow outline-none bg-pink hover:bg-darkpink hover:shadow-lg focus:outline-none"
                             >
                                 Register
                             </button>

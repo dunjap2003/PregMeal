@@ -11,8 +11,9 @@ export default {
       },
       colors:{
         pink: "#db7093",
-        lightpink: "#ffc0cb",
-        darkpink: "#de5285"
+        lightpink: "#fc8eac",
+        darkpink: "#de5285",
+        babypink: "#F0D8D8"
       },
       backgroundImage:{
         'homepage': 'url(/assets/homepage.png)'

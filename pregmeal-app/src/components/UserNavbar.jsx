@@ -5,7 +5,7 @@ const UserNavbar = () => {
     let navigate = useNavigate();
 
     const logout = () => {
-        localStorage.clear()
+        sessionStorage.clear()
         navigate("/")
     }
 
@@ -32,16 +32,16 @@ const UserNavbar = () => {
                     </div>
 
                     <div>
-                        <a href="/craving">
-                            <span className="text-pink text-lg font-bold hover:text-darkpink">Craving recommendations</span>
+                        <a href="/likedrecipes">
+                            <span className="text-pink text-lg font-bold hover:text-darkpink">Liked recipes</span>
                         </a>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-6">
                     <div>
-                        <a href="/profile">
-                            <span className="text-pink text-lg font-bold hover:text-darkpink">My profile</span>
+                        <a href={`/profile/${sessionStorage.getItem("id")}`}>
+                            <span className="text-pink text-lg hover:text-darkpink">{sessionStorage.getItem("username")}</span>
                         </a>
                     </div>
 
@@ -52,7 +52,6 @@ const UserNavbar = () => {
 
             </div>
         </nav>
-
     );
 };
 
